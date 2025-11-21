@@ -4,12 +4,14 @@
 
 **Production-grade mobile app for on-site field workers managing 400/220 kV EHV substation tasks**
 
-[![React Native](https://img.shields.io/badge/React%20Native-0.74-blue.svg)](https://reactnative.dev/)
-[![Expo](https://img.shields.io/badge/Expo-51.0-black.svg)](https://expo.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.1-blue.svg)](https://www.typescriptlang.org/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.81-blue.svg)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-54.0-black.svg)](https://expo.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 [Quick Start](#-quick-start) • [Features](#-features) • [Documentation](#-documentation) • [Demo](#-demo)
+
+![INDRA Mobile](https://img.shields.io/badge/Status-Production%20Ready-success)
 
 </div>
 
@@ -40,12 +42,12 @@
 <td>
 
 **Frontend**
-- React Native 0.74
-- Expo SDK 51
-- TypeScript 5.1
+- React Native 0.81
+- Expo SDK 54
+- TypeScript 5.3
 - Zustand + React Query
-- Reanimated 2
-- NativeWind
+- Reanimated 3
+- React Navigation 6
 
 </td>
 <td>
@@ -88,20 +90,24 @@ chmod +x INSTALL.sh && ./INSTALL.sh
 ### Option 2: Manual Install
 
 ```bash
-# 1. Install dependencies
-npm install
+# 1. Clone the repository
+git clone https://github.com/SharmARohitt/IndraApp.git
+cd IndraApp
 
-# 2. Configure environment
+# 2. Install dependencies
+npm install --legacy-peer-deps
+
+# 3. Configure environment
 cp .env.example .env
 # Edit .env with your IP address
 
-# 3. Start backend
+# 4. Start backend
 node server.js
 
-# 4. Start app (new terminal)
+# 5. Start app (new terminal)
 npm start
 
-# 5. Scan QR code with Expo Go
+# 6. Scan QR code with Expo Go
 ```
 
 ### Demo Credentials
@@ -109,13 +115,6 @@ npm start
 Email: worker@indra.com
 Password: password123
 ```
-
-## 📋 Prerequisites
-
-- Node.js 18+ and npm/yarn
-- Expo CLI: `npm install -g expo-cli`
-- For iOS: Xcode and CocoaPods
-- For Android: Android Studio
 
 ## 📱 Demo
 
@@ -141,13 +140,16 @@ Password: password123
 
 | Document | Description |
 |----------|-------------|
-| [GET_STARTED.md](GET_STARTED.md) | **Start here!** Quick 5-minute guide |
+| [START_HERE.md](START_HERE.md) | **Start here!** Welcome guide |
+| [GET_STARTED.md](GET_STARTED.md) | Quick 5-minute guide |
 | [QUICKSTART.md](QUICKSTART.md) | Fast setup instructions |
 | [SETUP.md](SETUP.md) | Detailed setup with troubleshooting |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Technical architecture & patterns |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Development guidelines |
 | [COMMANDS.md](COMMANDS.md) | Complete command reference |
 | [FILE_INDEX.md](FILE_INDEX.md) | All files explained |
+| [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) | Complete project overview |
+| [DELIVERY_SUMMARY.md](DELIVERY_SUMMARY.md) | Delivery report |
 
 ## 🎯 Project Structure
 
@@ -167,22 +169,6 @@ indra-mobile/
 ├── 🖥️ server.js                  # Mock backend
 └── 📚 docs/                      # Documentation
 ```
-
-## 🎨 Screenshots & Features
-
-### Key Screens
-- **Login** - JWT authentication with secure token storage
-- **Dashboard** - Task list with real-time updates
-- **Map** - OpenStreetMap with animated markers
-- **Task Detail** - Checklist, photos, notes, severity
-- **Queue** - Offline upload queue with sync status
-- **Profile** - User info and system status
-
-### Animations
-- Pulsing markers for urgent tasks
-- Smooth card transitions
-- Gesture-based interactions
-- Loading states with Lottie
 
 ## 🔧 Development
 
@@ -276,7 +262,7 @@ See [SETUP.md](SETUP.md) for detailed deployment instructions.
 npm run start:clear
 
 # Complete reset
-rm -rf node_modules && npm install && npm run start:clear
+rm -rf node_modules && npm install --legacy-peer-deps && npm run start:clear
 
 # Verify setup
 node verify-setup.js
@@ -291,16 +277,16 @@ See [SETUP.md](SETUP.md) for detailed troubleshooting guide.
 ✨ **Zero Native-JS Mismatches** - Strict use of `expo install`  
 ✨ **Production-Grade** - Enterprise-ready code quality  
 ✨ **Offline-First** - Works reliably in field conditions  
-✨ **Beautiful Animations** - Smooth 60fps with Reanimated 2  
+✨ **Beautiful Animations** - Smooth 60fps with Reanimated  
 ✨ **Free Map Provider** - No API keys or paid accounts  
-✨ **Comprehensive Docs** - 11 documentation files  
+✨ **Comprehensive Docs** - 12 documentation files  
 ✨ **Mock Backend** - Test without real server  
 ✨ **Type-Safe** - 100% TypeScript coverage  
 
 ## 📊 Project Stats
 
 ```
-Total Files:              57
+Total Files:              65
 Lines of Code:            ~3,500+
 Documentation:            ~6,000+ lines
 TypeScript Coverage:      100%
@@ -340,12 +326,12 @@ Built with amazing open-source projects:
 - React Native & Expo
 - OpenStreetMap
 - Socket.IO
-- Reanimated 2
+- Reanimated
 - And many more!
 
 ## 📞 Support
 
-- 📖 **Documentation**: Start with [GET_STARTED.md](GET_STARTED.md)
+- 📖 **Documentation**: Start with [START_HERE.md](START_HERE.md)
 - 🐛 **Issues**: Check [SETUP.md](SETUP.md) troubleshooting
 - 💬 **Questions**: Review existing documentation
 - 🔍 **Verification**: Run `node verify-setup.js`
@@ -368,8 +354,8 @@ Built with amazing open-source projects:
 
 ⭐ Star this repo if you find it helpful!
 
-[Report Bug](https://github.com/your-repo/issues) • [Request Feature](https://github.com/your-repo/issues) • [Documentation](GET_STARTED.md)
+[Report Bug](https://github.com/SharmARohitt/IndraApp/issues) • [Request Feature](https://github.com/SharmARohitt/IndraApp/issues) • [Documentation](START_HERE.md)
+
+**Made by [Rohit Sharma](https://github.com/SharmARohitt)**
 
 </div>
-
-
