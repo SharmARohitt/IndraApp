@@ -1,0 +1,72 @@
+{
+  "expo": {
+    "name": "INDRA Mobile",
+    "slug": "indra-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1e40af"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.indra.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app needs camera access to capture photos of substation equipment.",
+        "NSPhotoLibraryUsageDescription": "This app needs photo library access to attach images to reports.",
+        "NSLocationWhenInUseUsageDescription": "This app needs location access to navigate to assigned substations."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1e40af"
+      },
+      "package": "com.indra.mobile",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#1e40af"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow INDRA to access your camera to capture equipment photos."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow INDRA to use your location to navigate to substations."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      },
+      "apiUrl": "http://192.168.1.15:3000/api",
+      "wsUrl": "ws://192.168.1.15:3000"
+    }
+  }
+}
