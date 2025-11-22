@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
+import { haptic } from '../libs/haptics';
 
 interface ButtonProps {
   title: string;
@@ -44,10 +45,15 @@ export const Button: React.FC<ButtonProps> = ({
     textStyle,
   ];
 
+  const handlePress = () => {
+    haptic.buttonPress();
+    onPress();
+  };
+
   return (
     <TouchableOpacity
       style={buttonStyles}
-      onPress={onPress}
+      onPress={handlePress}
       disabled={disabled || loading}
       activeOpacity={0.7}
     >

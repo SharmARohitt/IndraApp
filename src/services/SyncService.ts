@@ -1,5 +1,10 @@
 import NetInfo from '@react-native-community/netinfo';
-import { loadQueuedReports, markReportSynced as markReportSyncedDB } from '../libs/db';
+import { 
+  loadUnsyncedReports, 
+  markReportSynced as markReportSyncedDB,
+  incrementSyncAttempts,
+  isDatabaseReady 
+} from '../libs/db';
 import { submitTaskReport } from '../api/tasks';
 import { useStore } from '../store/useStore';
 
@@ -63,13 +68,33 @@ class SyncService {
       return;
     }
 
+    // Check if database is ready
+    if (!isDatabaseReady()) {
+      console.log('Database not ready yet, skipping sync');
+      return;
+    }
+
     this.isSyncing = true;
 
     try {
-      const queuedReports = await loadQueuedReports();
-      console.log(`Syncing ${queuedReports.length} queued reports...`);
+      const unsyncedReports = await loadUnsyncedReports();
+      console.log(`Syncing ${unsyncedReports.length} queued reports...`);
 
-      for (const report of queuedReports) {
+      if (unsyncedReports.length === 0) {
+        console.log('No reports to sync');
+        return;
+      }
+
+      let successCount = 0;
+      let failureCount = 0;
+
+      for (const report of unsyncedReports) {
+        // Skip reports that have failed too many times
+        if (report.syncAttempts >= 3) {
+          console.log(`Skipping report ${report.id} - too many failed attempts`);
+          continue;
+        }
+
         try {
           await submitTaskReport({
             taskId: report.taskId,
@@ -86,21 +111,21 @@ class SyncService {
           // Update store
           useStore.getState().markReportSynced(report.id);
 
-          console.log(`Successfully synced report ${report.id}`);
+          successCount++;
+          console.log(`✅ Successfully synced report ${report.id}`);
         } catch (error) {
-          console.error(`Failed to sync report ${report.id}:`, error);
-          // Continue with next report
+          failureCount++;
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error(`❌ Failed to sync report ${report.id}:`, errorMessage);
+          
+          // Increment sync attempts
+          await incrementSyncAttempts(report.id, errorMessage);
         }
       }
 
-      console.log('Sync completed');
+      console.log(`Sync completed: ${successCount} success, ${failureCount} failures`);
     } catch (error) {
-      // Silently fail if database not ready
-      if (error instanceof Error && error.message.includes('Database not initialized')) {
-        console.log('Database not ready yet, skipping sync');
-      } else {
-        console.error('Sync failed:', error);
-      }
+      console.error('Sync failed:', error);
     } finally {
       this.isSyncing = false;
     }
@@ -108,13 +133,20 @@ class SyncService {
 
   async forceSyncReport(reportId: string): Promise<boolean> {
     try {
-      const queuedReports = await loadQueuedReports();
-      const report = queuedReports.find((r) => r.id === reportId);
+      if (!isDatabaseReady()) {
+        console.error('Database not ready for force sync');
+        return false;
+      }
+
+      const unsyncedReports = await loadUnsyncedReports();
+      const report = unsyncedReports.find((r) => r.id === reportId);
 
       if (!report) {
         console.error(`Report ${reportId} not found in queue`);
         return false;
       }
+
+      console.log(`Force syncing report ${reportId}...`);
 
       await submitTaskReport({
         taskId: report.taskId,
@@ -128,11 +160,29 @@ class SyncService {
       await markReportSyncedDB(report.id);
       useStore.getState().markReportSynced(report.id);
 
-      console.log(`Successfully force-synced report ${reportId}`);
+      console.log(`✅ Successfully force-synced report ${reportId}`);
       return true;
     } catch (error) {
-      console.error(`Failed to force-sync report ${reportId}:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`❌ Failed to force-sync report ${reportId}:`, errorMessage);
+      
+      // Increment sync attempts even for force sync
+      await incrementSyncAttempts(reportId, errorMessage);
       return false;
+    }
+  }
+
+  async getQueueStatus(): Promise<{ total: number; pending: number; synced: number; failed: number }> {
+    try {
+      if (!isDatabaseReady()) {
+        return { total: 0, pending: 0, synced: 0, failed: 0 };
+      }
+
+      const { getQueueStats } = require('../libs/db');
+      return await getQueueStats();
+    } catch (error) {
+      console.error('Failed to get queue status:', error);
+      return { total: 0, pending: 0, synced: 0, failed: 0 };
     }
   }
 }

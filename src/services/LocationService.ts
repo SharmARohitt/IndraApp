@@ -33,7 +33,19 @@ class LocationService {
 
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
+        timeout: 10000, // 10 second timeout
       });
+
+      // Validate the location data
+      if (!location?.coords?.latitude || 
+          !location?.coords?.longitude ||
+          typeof location.coords.latitude !== 'number' ||
+          typeof location.coords.longitude !== 'number' ||
+          isNaN(location.coords.latitude) ||
+          isNaN(location.coords.longitude)) {
+        console.warn('Invalid location data received');
+        return null;
+      }
 
       return location;
     } catch (error) {
@@ -43,6 +55,15 @@ class LocationService {
   }
 
   async openNavigation(lat: number, lng: number, label?: string): Promise<void> {
+    // Validate coordinates
+    if (!lat || !lng || 
+        typeof lat !== 'number' || 
+        typeof lng !== 'number' ||
+        isNaN(lat) || isNaN(lng)) {
+      console.error('Invalid coordinates for navigation:', { lat, lng });
+      return;
+    }
+
     const destination = `${lat},${lng}`;
     const labelParam = label ? `&label=${encodeURIComponent(label)}` : '';
 
