@@ -95,7 +95,12 @@ class SyncService {
 
       console.log('Sync completed');
     } catch (error) {
-      console.error('Sync failed:', error);
+      // Silently fail if database not ready
+      if (error instanceof Error && error.message.includes('Database not initialized')) {
+        console.log('Database not ready yet, skipping sync');
+      } else {
+        console.error('Sync failed:', error);
+      }
     } finally {
       this.isSyncing = false;
     }

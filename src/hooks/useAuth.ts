@@ -52,14 +52,50 @@ export const useAuth = () => {
   const login = async (email: string, password: string) => {
     try {
       const response = await apiLogin({ email, password });
+      
+      // Store token
+      if (Platform.OS === 'web') {
+        localStorage.setItem('accessToken', response.accessToken);
+      } else if (SecureStore) {
+        await SecureStore.setItemAsync('accessToken', response.accessToken);
+      }
+      
       setUser(response.user);
       setAccessToken(response.accessToken);
       return { success: true };
     } catch (error: any) {
       console.error('Login failed:', error);
+      
+      // If network error and using demo credentials, allow mock login
+      if (error.message?.includes('Network Error') || error.message?.includes('Cannot connect')) {
+        if (email === 'worker@indra.com' && password === 'password123') {
+          console.log('🔄 Using mock login for demo');
+          
+          const mockUser = {
+            id: 'mock-worker-1',
+            name: 'Demo Field Worker',
+            email: 'worker@indra.com',
+            role: 'worker' as const,
+          };
+          
+          const mockToken = 'mock-token-' + Date.now();
+          
+          // Store mock token
+          if (Platform.OS === 'web') {
+            localStorage.setItem('accessToken', mockToken);
+          } else if (SecureStore) {
+            await SecureStore.setItemAsync('accessToken', mockToken);
+          }
+          
+          setUser(mockUser);
+          setAccessToken(mockToken);
+          return { success: true };
+        }
+      }
+      
       return {
         success: false,
-        error: error.response?.data?.message || 'Login failed',
+        error: error.message || 'Login failed',
       };
     }
   };

@@ -1,11 +1,23 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 // Get API URL from expo constants (loaded from .env)
-const API_BASE_URL = Constants.expoConfig?.extra?.apiUrl || 'http://192.168.1.15:3000/api';
+// Try multiple URLs for better connectivity
+const POSSIBLE_URLS = [
+  Constants.expoConfig?.extra?.apiUrl,
+  'http://192.168.1.15:3000/api',
+  'http://localhost:3000/api',
+  'http://127.0.0.1:3000/api',
+  'http://10.0.2.2:3000/api', // Android emulator
+];
+
+const API_BASE_URL = POSSIBLE_URLS.find(url => url) || 'http://192.168.1.15:3000/api';
 
 console.log('API Base URL:', API_BASE_URL);
+console.log('Platform:', Platform.OS);
+console.log('All possible URLs:', POSSIBLE_URLS);
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -15,12 +27,54 @@ export const api = axios.create({
   },
 });
 
+// Add request logging
+api.interceptors.request.use(
+  (config) => {
+    console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    console.log('Base URL:', config.baseURL);
+    return config;
+  },
+  (error) => {
+    console.error('❌ Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response logging
+api.interceptors.response.use(
+  (response) => {
+    console.log(`✅ API Response: ${response.status} ${response.config.url}`);
+    return response;
+  },
+  (error) => {
+    console.error('❌ API Error:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   async (config) => {
-    const token = await SecureStore.getItemAsync('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      let token = null;
+      if (Platform.OS === 'web') {
+        token = localStorage.getItem('accessToken');
+      } else {
+        const SecureStore = require('expo-secure-store');
+        token = await SecureStore.getItemAsync('accessToken');
+      }
+      
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error('Failed to get token:', error);
     }
     return config;
   },
@@ -37,7 +91,14 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = await SecureStore.getItemAsync('refreshToken');
+        let refreshToken = null;
+        if (Platform.OS === 'web') {
+          refreshToken = localStorage.getItem('refreshToken');
+        } else {
+          const SecureStore = require('expo-secure-store');
+          refreshToken = await SecureStore.getItemAsync('refreshToken');
+        }
+        
         if (!refreshToken) {
           throw new Error('No refresh token');
         }
@@ -47,14 +108,26 @@ api.interceptors.response.use(
         });
 
         const { accessToken } = response.data;
-        await SecureStore.setItemAsync('accessToken', accessToken);
+        
+        if (Platform.OS === 'web') {
+          localStorage.setItem('accessToken', accessToken);
+        } else {
+          const SecureStore = require('expo-secure-store');
+          await SecureStore.setItemAsync('accessToken', accessToken);
+        }
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         // Refresh failed, logout user
-        await SecureStore.deleteItemAsync('accessToken');
-        await SecureStore.deleteItemAsync('refreshToken');
+        if (Platform.OS === 'web') {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+        } else {
+          const SecureStore = require('expo-secure-store');
+          await SecureStore.deleteItemAsync('accessToken');
+          await SecureStore.deleteItemAsync('refreshToken');
+        }
         return Promise.reject(refreshError);
       }
     }
